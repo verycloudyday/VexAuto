@@ -283,8 +283,8 @@ int DriveTask(void){
   while(true)
   {
     EXIT=true;
-    RV=-Controller1.Axis3.position(percent)-Controller1.Axis1.position(percent);
-    LV=-Controller1.Axis3.position(percent)+Controller1.Axis1.position(percent);
+    RV=-Controller1.Axis3.position(percent)+Controller1.Axis1.position(percent);
+    LV=-Controller1.Axis3.position(percent)-Controller1.Axis1.position(percent);
     Move(LV,RV);
   }
 
@@ -338,6 +338,18 @@ int PTask(void)
       Clamp.set(true);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     else if(!Controller1.ButtonY.pressing())ButtonPressingY=0;
 
     else if(YTaskActiv==1&&Controller1.ButtonY.pressing()&&ButtonPressingY==0)
@@ -352,6 +364,60 @@ int PTask(void)
   }
   return 0;
 }
+// int IntakeTask(void) {
+//   while (true) {
+//     if (Controller1.ButtonR2.pressing()) {
+//       RunRoller(100);    // R2 held: spin forward
+//     } else if (Controller1.ButtonR1.pressing()) {
+//       RunRoller(-100);   // R1 held: spin backward
+//     }
+//   }
+//   return 0;
+// }
+
+int LiftTask(void){
+  while(true)
+  {
+    if (Controller1.ButtonL2.pressing()) {
+      liftL.spin(forward, 100, percentUnits::pct); 
+      liftR.spin(reverse, 100, percentUnits::pct);   // L2 held: spin forward
+    } else if (Controller1.ButtonL1.pressing()) {
+      liftL.spin(reverse, 100, percentUnits::pct);   // L1 held: spin backward
+      liftR.spin(forward, 100, percentUnits::pct);   // L1 held: spin backward
+    } else {
+      liftL.stop();      // neither held: stop
+      liftR.stop();      // neither held: stop
+    }
+  }
+  return 0;
+}
+
+int ClawTask(void){
+  while(true){
+    if(Controller1.ButtonDown.pressing()){
+      Claw.set(true);
+    }
+    else if(Controller1.ButtonUp.pressing()){
+      Claw.set(false);
+    }
+  }
+}
+
+int ChainbarTask(void){
+  while(true){
+    if(Controller1.ButtonB.pressed()){
+      chainbar.spin(forward, 50, percentUnits::pct);
+    }
+    else if(Controller1.ButtonX.pressed()){
+      chainbar.spin(reverse, 50, percentUnits::pct);
+    }
+    else{
+      chainbar.stop();
+    }
+  }
+}
+
+
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
 /*                              User Control Task                            */
@@ -375,6 +441,10 @@ void usercontrol(void) {
     task Dtask=task(DriveTask);
     task Atask=task(ATask);
     task Ptask=task(PTask);
+    task Ltask=task(LiftTask);
+    // task Ctask=task(ClawTask);
+    // task Itask=task(IntakeTask);
+
     // ........................................................................
     // Insert user code here. This is where you use the joystick values to
     // update your motors, etc.
