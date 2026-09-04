@@ -7,7 +7,7 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
-//#include "STDLib.cpp"
+// #include "STDLib.cpp"
 #include "vex.h"
 
 #include "screen_gui.hpp"
@@ -18,7 +18,6 @@ using namespace vex;
 
 // A global instance of competition
 competition Competition;
-
 
 // define your global instances of motors and other devices here
 
@@ -34,174 +33,181 @@ competition Competition;
 
 bool SP;
 bool EXIT;
-void pre_auton(void) {
-   EXIT=false;
+void pre_auton(void)
+{
+  EXIT = false;
   Tilt.set(true);
   Clamp.set(true);
-  PX=0;
-  JX=0;
-  AutoSelectorVal=0;
-  SP=false;
+  PX = 0;
+  JX = 0;
+  AutoSelectorVal = 0;
+  SP = false;
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-Gyro.calibrate();
+  Gyro.calibrate();
 
-//Ensure Robot Launch Position is set before auto proceeds, once plugged into field control,
-//start program and do not temper bot under all circumstances
+  // Ensure Robot Launch Position is set before auto proceeds, once plugged into field control,
+  // start program and do not temper bot under all circumstances
 
-//1. IF ANY ADJUSTMENT IS NEEDED, QUIT PROGRAM, THEN ADJUST, RESTART PROGRAM AFTER ADJUSTMENTS COMPLETED
-//2. DO NOT START PROGRAM BEFORE PLUGGING IN FIELD CONTROL, THIS MAY DISABLE AUTO
-//3. ONLY SIGNAL JUDGES TO BEGIN MATCH AFTER THE ZEROING PROMPT ON SCREEN HAS CLEARED
+  // 1. IF ANY ADJUSTMENT IS NEEDED, QUIT PROGRAM, THEN ADJUST, RESTART PROGRAM AFTER ADJUSTMENTS COMPLETED
+  // 2. DO NOT START PROGRAM BEFORE PLUGGING IN FIELD CONTROL, THIS MAY DISABLE AUTO
+  // 3. ONLY SIGNAL JUDGES TO BEGIN MATCH AFTER THE ZEROING PROMPT ON SCREEN HAS CLEARED
 
-//Print precautionary message
-Brain.Screen.drawRectangle(0,0,500,500);
-
-Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(2,10);
-Brain.Screen.print("FLIR TIMEOUT");
-
-
-waitUntil(!Gyro.isCalibrating());
-
-
-Zeroing(true,true);
-DisplayAutoSelector();
-DisplayWords();
-
-//task AutoSelTask=task(ScreenSelMain);
-  while(!EXIT)
-{
-if(Brain.Screen.xPosition()<100)
-{
-if(Brain.Screen.yPosition()<75&&Brain.Screen.yPosition()>25)AutoSelectorVal=1;
-else if(Brain.Screen.yPosition()<150&&Brain.Screen.yPosition()>100)AutoSelectorVal=3;
-else if(Brain.Screen.yPosition()<225&&Brain.Screen.yPosition()>175)AutoSelectorVal=5;
-}
-else if(Brain.Screen.xPosition()>375)
-{
-if(Brain.Screen.yPosition()<75&&Brain.Screen.yPosition()>25)AutoSelectorVal=2;
-else if(Brain.Screen.yPosition()<150&&Brain.Screen.yPosition()>100)AutoSelectorVal=4;
-else if(Brain.Screen.yPosition()<225&&Brain.Screen.yPosition()>175)AutoSelectorVal=6;
-}
-
-if(Brain.Screen.xPosition()>187&&Brain.Screen.xPosition()<287)
-{
-if(Brain.Screen.yPosition()<55&&Brain.Screen.yPosition()>5) EXIT=true;
-else if(Brain.Screen.yPosition()>125&&Brain.Screen.yPosition()<225)AutoSelectorVal=7;
-}
-
-if(Brain.Screen.pressing()&&!SP) UpdateDynamic();
-
-SP=Brain.Screen.pressing();
-
-}
-
-Brain.Screen.clearScreen();
-if(AutoSelectorVal==1){
-  Brain.Screen.setFillColor(black);
-Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("GOAL SIDE");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("6 BALL");
-Brain.Screen.setFont(monoM);
-  Brain.Screen.setFillColor("#39FF14");
-
-}
-
-if(AutoSelectorVal==2){
-Brain.Screen.setFillColor(black);
+  // Print precautionary message
+  Brain.Screen.drawRectangle(0, 0, 500, 500);
 
   Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("MATCHLOAD");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("StealAWP");
-Brain.Screen.setFont(monoM);
-  Brain.Screen.setFillColor("#39FF14");
-}
+  Brain.Screen.setPenColor("#39FF14");
+  Brain.Screen.setCursor(2, 10);
+  Brain.Screen.print("FLIR TIMEOUT");
 
-if(AutoSelectorVal==3){
+  waitUntil(!Gyro.isCalibrating());
 
-Brain.Screen.setFillColor(black);
+  Zeroing(true, true);
+  DisplayAutoSelector();
+  DisplayWords();
 
-    Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("GOAL SIDE");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("5 BALL");
-Brain.Screen.setFont(monoM);  
-  Brain.Screen.setFillColor("#39FF14");
-}
+  // task AutoSelTask=task(ScreenSelMain);
+  while (!EXIT)
+  {
+    if (Brain.Screen.xPosition() < 100)
+    {
+      if (Brain.Screen.yPosition() < 75 && Brain.Screen.yPosition() > 25)
+        AutoSelectorVal = 1;
+      else if (Brain.Screen.yPosition() < 150 && Brain.Screen.yPosition() > 100)
+        AutoSelectorVal = 3;
+      else if (Brain.Screen.yPosition() < 225 && Brain.Screen.yPosition() > 175)
+        AutoSelectorVal = 5;
+    }
+    else if (Brain.Screen.xPosition() > 375)
+    {
+      if (Brain.Screen.yPosition() < 75 && Brain.Screen.yPosition() > 25)
+        AutoSelectorVal = 2;
+      else if (Brain.Screen.yPosition() < 150 && Brain.Screen.yPosition() > 100)
+        AutoSelectorVal = 4;
+      else if (Brain.Screen.yPosition() < 225 && Brain.Screen.yPosition() > 175)
+        AutoSelectorVal = 6;
+    }
 
-if(AutoSelectorVal==4){
+    if (Brain.Screen.xPosition() > 187 && Brain.Screen.xPosition() < 287)
+    {
+      if (Brain.Screen.yPosition() < 55 && Brain.Screen.yPosition() > 5)
+        EXIT = true;
+      else if (Brain.Screen.yPosition() > 125 && Brain.Screen.yPosition() < 225)
+        AutoSelectorVal = 7;
+    }
 
-Brain.Screen.setFillColor(black);
+    if (Brain.Screen.pressing() && !SP)
+      UpdateDynamic();
 
-  Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("MATCHLOAD");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("Elim-Steal");
-Brain.Screen.setFont(monoM); 
-  Brain.Screen.setFillColor("#39FF14");
-
-}
-
-if(AutoSelectorVal==5){
-
-Brain.Screen.setFillColor(black);
-    Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("GOAL SIDE");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("GS-AWP");
-Brain.Screen.setFont(monoM); 
-  Brain.Screen.setFillColor("#39FF14");
-
-}
-
-if(AutoSelectorVal==6){
-  
-  Brain.Screen.setFillColor(black);
-    Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("MATCHLOAD");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("ONLY AWP");
-Brain.Screen.setFont(monoM); 
-  Brain.Screen.setFillColor("#39FF14");
-
+    SP = Brain.Screen.pressing();
   }
 
-if(AutoSelectorVal==7){
+  Brain.Screen.clearScreen();
+  if (AutoSelectorVal == 1)
+  {
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("GOAL SIDE");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("6 BALL");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
 
-Brain.Screen.setFillColor(black);
-Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(3,10);
-Brain.Screen.print("SKILLS");
-Brain.Screen.setCursor(4,10);
-Brain.Screen.print("SKILLS");
-Brain.Screen.setFont(monoM); 
-Brain.Screen.setFillColor("#39FF14");
+  if (AutoSelectorVal == 2)
+  {
+    Brain.Screen.setFillColor(black);
 
-}
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("MATCHLOAD");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("StealAWP");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
 
-Brain.Screen.setFillColor(black);
-Brain.Screen.setFont(monoXL);
-Brain.Screen.setPenColor("#39FF14");
-Brain.Screen.setCursor(5,10);
-Brain.Screen.print("AUTO CONFIRMED");
+  if (AutoSelectorVal == 3)
+  {
 
+    Brain.Screen.setFillColor(black);
 
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("GOAL SIDE");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("5 BALL");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
+
+  if (AutoSelectorVal == 4)
+  {
+
+    Brain.Screen.setFillColor(black);
+
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("MATCHLOAD");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("Elim-Steal");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
+
+  if (AutoSelectorVal == 5)
+  {
+
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("GOAL SIDE");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("GS-AWP");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
+
+  if (AutoSelectorVal == 6)
+  {
+
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("MATCHLOAD");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("ONLY AWP");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
+
+  if (AutoSelectorVal == 7)
+  {
+
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.setFont(monoXL);
+    Brain.Screen.setPenColor("#39FF14");
+    Brain.Screen.setCursor(3, 10);
+    Brain.Screen.print("SKILLS");
+    Brain.Screen.setCursor(4, 10);
+    Brain.Screen.print("SKILLS");
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.setFillColor("#39FF14");
+  }
+
+  Brain.Screen.setFillColor(black);
+  Brain.Screen.setFont(monoXL);
+  Brain.Screen.setPenColor("#39FF14");
+  Brain.Screen.setCursor(5, 10);
+  Brain.Screen.print("AUTO CONFIRMED");
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
@@ -217,150 +223,136 @@ Brain.Screen.print("AUTO CONFIRMED");
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-void autonomous(void) {
-  
-//PID Straight and turn arguments:
-// MoveEncoderPID(TestPara, motor speed, encoder travel distance (inches), time to full speed(sec), relative heading(to starting position), braking?)
-// TurnMaxTimePID(TestPara, Desired Heading -180 to 180, time out to calculate turn, Braking?)
-// MoveTimePID(TestPara, motor speed, time traveled (sec), time to full speed, heading, false);
-
-//Do not change the below
-PIDDataSet TestPara={4,0.1,0.2};
-Zeroing(true,true);
-
-//can start editing if nessary
-//Put Auto route function into if statements to use autoselector
-if(AutoSelectorVal==1)//Quali close 6 triball auto 
-{
-  test();
-}
-
-if(AutoSelectorVal==2)// awp mid steal
-{
-  test2();
-
-}
-
-if(AutoSelectorVal==3)// 5 Ball rush
-{
-  
-} 
-
-if(AutoSelectorVal==4)// Elim-Steal
+void autonomous(void)
 {
 
-  
-}
+  // PID Straight and turn arguments:
+  //  MoveEncoderPID(TestPara, motor speed, encoder travel distance (inches), time to full speed(sec), relative heading(to starting position), braking?)
+  //  TurnMaxTimePID(TestPara, Desired Heading -180 to 180, time out to calculate turn, Braking?)
+  //  MoveTimePID(TestPara, motor speed, time traveled (sec), time to full speed, heading, false);
 
-if(AutoSelectorVal==5)// empty
-{
-   //test();
-}
+  // Do not change the below
+  PIDDataSet TestPara = {4, 0.1, 0.2};
+  Zeroing(true, true);
 
+  // can start editing if nessary
+  // Put Auto route function into if statements to use autoselector
+  if (AutoSelectorVal == 1) // Quali close 6 triball auto
+  {
+    test();
+  }
 
-if(AutoSelectorVal==6)//AWP only
-{
+  if (AutoSelectorVal == 2) // awp mid steal
+  {
+    test2();
+  }
 
-}
+  if (AutoSelectorVal == 3) // 5 Ball rush
+  {
+  }
 
+  if (AutoSelectorVal == 4) // Elim-Steal
+  {
+  }
 
-if(AutoSelectorVal==7)//temporary prog skills
-{ 
- 
+  if (AutoSelectorVal == 5) // empty
+  {
+    // test();
+  }
 
-}
-//MoveTimePID(TestPara, -100, 0.5,0.1,-40,true);//score 2nd triball
-//(PID Parameters, motor speed -100 - 100, time for travel 0 - inf, time to accelerate to full speed, Absolute Heading, Braking?)
+  if (AutoSelectorVal == 6) // AWP only
+  {
+  }
 
-    // ..........................................................................
+  if (AutoSelectorVal == 7) // temporary prog skills
+  {
+  }
+  // MoveTimePID(TestPara, -100, 0.5,0.1,-40,true);//score 2nd triball
+  //(PID Parameters, motor speed -100 - 100, time for travel 0 - inf, time to accelerate to full speed, Absolute Heading, Braking?)
+
+  // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-CStop();
+  CStop();
 }
 int RV;
 int LV;
-int DriveTask(void){
-  while(true)
+int DriveTask(void)
+{
+  while (true)
   {
-    EXIT=true;
-    RV=-Controller1.Axis3.position(percent)+Controller1.Axis1.position(percent);
-    LV=-Controller1.Axis3.position(percent)-Controller1.Axis1.position(percent);
-    Move(LV,RV);
+    EXIT = true;
+    RV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
+    LV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
+    Move(LV, RV);
+    if (RV > 100)
+      RV = 100;
+    if (RV < -100)
+      RV = -100;
+    if (LV > 100)
+      LV = 100;
+    if (LV < -100)
+      LV = -100;
   }
-
-return 0;
+  return 0;
 }
 int V;
 int ATask(void)
 {
   double pow;
-    while(true)
+  while (true)
   {
-    pow=((Controller1.ButtonR2.pressing()-Controller1.ButtonR1.pressing())*100);//Calculate intake power, if button pressed, button.pressing returns 1
+    pow = ((Controller1.ButtonR2.pressing() - Controller1.ButtonR1.pressing()) * 100); // Calculate intake power, if button pressed, button.pressing returns 1
     RunRoller(-pow);
-    
-  
-  //RunPuncher((Controller1.ButtonB.pressing())*100);
+
+    // RunPuncher((Controller1.ButtonB.pressing())*100);
   }
-  
+
   return 0;
 }
 
-int ButtonPressingX,XTaskActiv;
-int ButtonPressingY,YTaskActiv;
+int ButtonPressingX, XTaskActiv;
+int ButtonPressingY, YTaskActiv;
 
 int PTask(void)
 {
-    while(true)
+  while (true)
+  {
+    // Toggles Tilt
+    if (XTaskActiv == 0 && Controller1.ButtonX.pressing() && ButtonPressingX == 0)
     {
-      //Toggles Tilt
-    if(XTaskActiv==0&&Controller1.ButtonX.pressing()&&ButtonPressingX==0)
-    {
-      ButtonPressingX=1;
-      XTaskActiv=1;
+      ButtonPressingX = 1;
+      XTaskActiv = 1;
       Tilt.set(true);
     }
 
-    else if(!Controller1.ButtonX.pressing())ButtonPressingX=0;
+    else if (!Controller1.ButtonX.pressing())
+      ButtonPressingX = 0;
 
-    else if(XTaskActiv==1&&Controller1.ButtonX.pressing()&&ButtonPressingX==0)
+    else if (XTaskActiv == 1 && Controller1.ButtonX.pressing() && ButtonPressingX == 0)
     {
-      ButtonPressingX=1;
-      XTaskActiv=0;
+      ButtonPressingX = 1;
+      XTaskActiv = 0;
       Tilt.set(false);
     }
     //----------------------
-      //Toggles Clamp
-    if(YTaskActiv==0&&Controller1.ButtonY.pressing()&&ButtonPressingY==0)
+    // Toggles Clamp
+    if (YTaskActiv == 0 && Controller1.ButtonY.pressing() && ButtonPressingY == 0)
     {
-      ButtonPressingY=1;
-      YTaskActiv=1;
+      ButtonPressingY = 1;
+      YTaskActiv = 1;
       Clamp.set(true);
     }
 
+    else if (!Controller1.ButtonY.pressing())
+      ButtonPressingY = 0;
 
-
-
-
-
-
-
-
-
-
-
-
-    else if(!Controller1.ButtonY.pressing())ButtonPressingY=0;
-
-    else if(YTaskActiv==1&&Controller1.ButtonY.pressing()&&ButtonPressingY==0)
+    else if (YTaskActiv == 1 && Controller1.ButtonY.pressing() && ButtonPressingY == 0)
     {
-      ButtonPressingY=1;
-      YTaskActiv=0;
+      ButtonPressingY = 1;
+      YTaskActiv = 0;
       Clamp.set(false);
     }
-
-
-
   }
   return 0;
 }
@@ -375,48 +367,95 @@ int PTask(void)
 //   return 0;
 // }
 
-int LiftTask(void){
-  while(true)
+int LiftTask(void)
+{
+  while (true)
   {
-    if (Controller1.ButtonL2.pressing()) {
-      liftL.spin(forward, 100, percentUnits::pct); 
-      liftR.spin(reverse, 100, percentUnits::pct);   // L2 held: spin forward
-    } else if (Controller1.ButtonL1.pressing()) {
-      liftL.spin(reverse, 100, percentUnits::pct);   // L1 held: spin backward
-      liftR.spin(forward, 100, percentUnits::pct);   // L1 held: spin backward
-    } else {
-      liftL.stop();      // neither held: stop
-      liftR.stop();      // neither held: stop
+    if (Controller1.ButtonL2.pressing())
+    {
+      liftL.spin(forward, 100, percentUnits::pct);
+      liftR.spin(reverse, 100, percentUnits::pct); // L2 held: spin forward
+    }
+    else if (Controller1.ButtonL1.pressing())
+    {
+      liftL.spin(reverse, 100, percentUnits::pct); // L1 held: spin backward
+      liftR.spin(forward, 100, percentUnits::pct); // L1 held: spin backward
+    }
+    else
+    {
+      liftL.stop(); // neither held: stop
+      liftR.stop(); // neither held: stop
     }
   }
   return 0;
 }
 
-int ClawTask(void){
-  while(true){
-    if(Controller1.ButtonDown.pressing()){
+int ClawTask(void)
+{
+  while (true)
+  {
+    if (Controller1.ButtonDown.pressing())
+    {
       Claw.set(true);
     }
-    else if(Controller1.ButtonUp.pressing()){
+    else if (Controller1.ButtonUp.pressing())
+    {
       Claw.set(false);
     }
   }
 }
 
-int ChainbarTask(void){
-  while(true){
-    if(Controller1.ButtonB.pressed()){
+int ChainbarTask(void)
+{
+  while (true)
+  {
+    if (Controller1.ButtonB.pressing())
+    {
       chainbar.spin(forward, 50, percentUnits::pct);
     }
-    else if(Controller1.ButtonX.pressed()){
+    else if (Controller1.ButtonX.pressing())
+    {
       chainbar.spin(reverse, 50, percentUnits::pct);
     }
-    else{
+    else
+    {
       chainbar.stop();
     }
   }
 }
 
+double tipCorrection = 0;
+int balancer(void)
+{
+  const double kP = 2.0;            // pitch-angle gain — tune this first
+  const double kD = 0.3;            // pitch-rate gain — damps oscillation/overcorrection
+  const double pitchDeadband = 3.0; // degrees — ignore normal driving tilt/bumps
+
+  double lastPitch = 0;
+
+  while (true)
+  {
+    double pitch = Gyro.pitch(rotationUnits::deg);
+    double pitchRate = (pitch - lastPitch) / 0.01; // deg/s, loop runs every 10ms
+    lastPitch = pitch;
+
+    if (fabs(pitch) > pitchDeadband)
+    {
+      tipCorrection = (pitch * kP) + (pitchRate * kD);
+      if (tipCorrection > 100)
+        tipCorrection = 100;
+      if (tipCorrection < -100)
+        tipCorrection = -100;
+    }
+    else
+    {
+      tipCorrection = 0;
+    }
+
+    wait(10, msec); // tipping happens fast — poll quickly
+  }
+  return 0;
+}
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -428,20 +467,20 @@ int ChainbarTask(void){
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-void usercontrol(void) {
-  EXIT=true;//Force Exit Autosel once drivercontrol began.
+void usercontrol(void)
+{
+  EXIT = true; // Force Exit Autosel once drivercontrol began.
   // User control code here, inside the loop
-  while (1) {
+  while (1)
+  {
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
     // values based on feedback from the joysticks.
-    
-     
-    
-    task Dtask=task(DriveTask);
-    task Atask=task(ATask);
-    task Ptask=task(PTask);
-    task Ltask=task(LiftTask);
+
+    task Dtask = task(DriveTask);
+    task Atask = task(ATask);
+    task Ptask = task(PTask);
+    task Ltask = task(LiftTask);
     // task Ctask=task(ClawTask);
     // task Itask=task(IntakeTask);
 
@@ -459,20 +498,18 @@ void usercontrol(void) {
 // Main will set up the competition functions and callbacks.
 //
 
+int main()
+{
 
-int main() {
-  
   // Set up callbacks for autonomous and driver control periods.
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
   // Run the pre-autonomous function.
   pre_auton();
-  
-  
 
   // Prevent main from exiting with an infinite loop.
-  while (true) {
+  while (true)
+  {
     wait(100, msec);
   }
 }
-  
