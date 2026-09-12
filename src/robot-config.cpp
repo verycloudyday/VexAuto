@@ -20,8 +20,9 @@ motor liftL = motor(PORT14, ratio6_1, true);
 motor liftR = motor(PORT17, ratio6_1, true);
 motor chainbar = motor(PORT16, ratio18_1, false);
 digital_out Claw = digital_out(Brain.ThreeWirePort.G);
-digital_out Tilt = digital_out(Brain.ThreeWirePort.B);
+digital_out IntakeBar = digital_out(Brain.ThreeWirePort.H);
 digital_out Clamp = digital_out(Brain.ThreeWirePort.A);
+digital_out Tilt = digital_out(Brain.ThreeWirePort.C);
 inertial Gyro = inertial(PORT18);
 //Naming convention: 
 // Important variables

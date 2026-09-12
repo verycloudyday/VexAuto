@@ -8,9 +8,9 @@
 
 void test() {
     // declare initial conditions
-    //PIDDataSet TestPara={4,0.1,0.2};
+    PIDDataSet TestPara={4,0.1,0.2};
     PIDDataSet TestPara={1.5,0.1,0.15};
-    MoveEncoderPID(TestPara, 100, 36 , 0.4,0,true);
+    // MoveEncoderPID(TestPara, 100, 36 , 0.4,0,true);
     
     /*MoveEncoderPID(TestPara, 100 , 65 ,0.4,0,true);
     TurnMaxTimePID(TestPara, 90, 0.4, true);
@@ -18,7 +18,6 @@ void test() {
     wait(1000,msec);
     MoveEncoderPID(TestPara, -100 , 90 ,0.4,90,true);
         MoveEncoderPID(TestPara, -100 , 90 ,0.4,0,true);*/
-
     // // moves forward
     // MoveEncoderPID(TestPara, -100 , 24 ,0.2,0,true);
     // // turns to 90 degrees, 0.4s for calculations, brake when heading reached
@@ -31,6 +30,9 @@ void test() {
     // MoveEncoderPID(TestPara, -50 , 10 ,0.2,60,true);
 
     //MoveEncoderPID(TestPara, 100 , 560 ,0.2,0,true);
+    // MovePID(TestPara, 100, 5, 0.5, 0, true, 2); // Move forward 24 inches
+    // wait(500, sec);
+    // MovePID(TestPara, -100, 5, 0.5, 0, true, 2); // Move backward 24 inches
 }
 void test2(){  
     

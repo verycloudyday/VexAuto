@@ -21,6 +21,8 @@ competition Competition;
 
 // define your global instances of motors and other devices here
 
+
+
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
 /*                                                                           */
@@ -35,6 +37,7 @@ bool SP;
 bool EXIT;
 void pre_auton(void)
 {
+  Claw.set(true);
   EXIT = false;
   Tilt.set(true);
   Clamp.set(true);
@@ -273,26 +276,79 @@ void autonomous(void)
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
+
+ 
+
   CStop();
 }
 int RV;
 int LV;
+
+bool tipActive = false;
+
+int AntiTipTask(void)
+{
+  const double kP = 5.0;
+  const double kD = 1.0;
+  const double triggerAngle = 9.0; // degrees — start correcting past this
+  const double releaseAngle = 6.0; // degrees — stop correcting once back under this
+
+  double lastPitch = 0;
+  Gyro.calibrate();
+
+  while (true)
+  {
+    double pitch = Gyro.pitch(rotationUnits::deg);
+    double pitchRate = (pitch - lastPitch) / 0.01;
+    lastPitch = pitch;
+
+    if (!tipActive && fabs(pitch) > triggerAngle)
+    {
+      tipActive = true;
+    }
+    else if (tipActive && fabs(pitch) < releaseAngle)
+    {
+      tipActive = false;
+    }
+
+    if (tipActive)
+    {
+      double correction = (pitch * kP) + (pitchRate * kD);
+      if (correction > 100)
+        correction = 100;
+      if (correction < -100)
+        correction = -100;
+      Move(correction, correction);
+
+    }
+
+    wait(10, msec);
+  }
+  return 0;
+}
+
 int DriveTask(void)
 {
   while (true)
   {
-    EXIT = true;
-    RV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
-    LV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
-    Move(LV, RV);
-    if (RV > 100)
-      RV = 100;
-    if (RV < -100)
-      RV = -100;
-    if (LV > 100)
-      LV = 100;
-    if (LV < -100)
-      LV = -100;
+    if (!tipActive)
+    {
+      RV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
+      LV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
+
+      if (RV > 100)
+        RV = 100;
+      if (RV < -100)
+        RV = -100;
+      if (LV > 100)
+        LV = 100;
+      if (LV < -100)
+        LV = -100;
+
+      Move(LV, RV);
+    }
+    // while tipActive is true, DriveTask does nothing — AntiTipTask owns the motors
+    wait(10, msec);
   }
   return 0;
 }
@@ -369,6 +425,8 @@ int PTask(void)
 
 int LiftTask(void)
 {
+  liftL.setMaxTorque(100, percentUnits::pct);
+  liftR.setMaxTorque(100, percentUnits::pct);
   while (true)
   {
     if (Controller1.ButtonL2.pressing())
@@ -399,7 +457,22 @@ int ClawTask(void)
       Claw.set(true);
     }
     else if (Controller1.ButtonUp.pressing())
+    { 
+      Claw.set(false);
+    }
+  }
+}
+
+int IntakeBarTask(void)
+{
+  while (true)
+  {
+    if (Controller1.ButtonRight.pressing())
     {
+      Claw.set(true);
+    }
+    else if (Controller1.ButtonLeft.pressing())
+    { 
       Claw.set(false);
     }
   }
@@ -409,13 +482,16 @@ int ChainbarTask(void)
 {
   while (true)
   {
-    if (Controller1.ButtonB.pressing())
+    if (Controller1.ButtonB.pressing()) 
     {
-      chainbar.spin(forward, 50, percentUnits::pct);
+      chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct); //zero position
     }
     else if (Controller1.ButtonX.pressing())
     {
-      chainbar.spin(reverse, 50, percentUnits::pct);
+      chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct); //back position
+    }
+    else if (Controller1.ButtonA.pressing()){
+      chainbar.spinToPosition(423, rotationUnits::deg, 100, velocityUnits::pct); //high position 
     }
     else
     {
@@ -424,38 +500,8 @@ int ChainbarTask(void)
   }
 }
 
-double tipCorrection = 0;
-int balancer(void)
-{
-  const double kP = 2.0;            // pitch-angle gain — tune this first
-  const double kD = 0.3;            // pitch-rate gain — damps oscillation/overcorrection
-  const double pitchDeadband = 3.0; // degrees — ignore normal driving tilt/bumps
 
-  double lastPitch = 0;
 
-  while (true)
-  {
-    double pitch = Gyro.pitch(rotationUnits::deg);
-    double pitchRate = (pitch - lastPitch) / 0.01; // deg/s, loop runs every 10ms
-    lastPitch = pitch;
-
-    if (fabs(pitch) > pitchDeadband)
-    {
-      tipCorrection = (pitch * kP) + (pitchRate * kD);
-      if (tipCorrection > 100)
-        tipCorrection = 100;
-      if (tipCorrection < -100)
-        tipCorrection = -100;
-    }
-    else
-    {
-      tipCorrection = 0;
-    }
-
-    wait(10, msec); // tipping happens fast — poll quickly
-  }
-  return 0;
-}
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -471,16 +517,19 @@ void usercontrol(void)
 {
   EXIT = true; // Force Exit Autosel once drivercontrol began.
   // User control code here, inside the loop
+
   while (1)
   {
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
     // values based on feedback from the joysticks.
-
+    
+    task Tiptask = task(AntiTipTask);
     task Dtask = task(DriveTask);
     task Atask = task(ATask);
     task Ptask = task(PTask);
     task Ltask = task(LiftTask);
+    task Itask = task(IntakeBarTask);
     // task Ctask=task(ClawTask);
     // task Itask=task(IntakeTask);
 
