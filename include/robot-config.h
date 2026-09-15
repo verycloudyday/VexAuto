@@ -23,6 +23,8 @@ extern digital_out Pistake;
 extern motor PU;
 extern inertial Gyro;
 extern digital_out LeftBackWing;
+extern distance intakeSensor;
+extern digital_out IntakeBar;
 
 extern const double wheelDiam;
 extern const double wheelToMotorRatio;

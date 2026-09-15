@@ -24,6 +24,7 @@ digital_out IntakeBar = digital_out(Brain.ThreeWirePort.H);
 digital_out Clamp = digital_out(Brain.ThreeWirePort.A);
 digital_out Tilt = digital_out(Brain.ThreeWirePort.C);
 inertial Gyro = inertial(PORT18);
+distance intakeSensor = distance(PORT15); //change later
 //Naming convention: 
 // Important variables
 const double wheelDiam = 2.75;

@@ -13,6 +13,7 @@
 #include "screen_gui.hpp"
 #include "movement.hpp"
 #include "routes/routes.hpp"
+#include <iostream>
 
 using namespace vex;
 
@@ -20,8 +21,6 @@ using namespace vex;
 competition Competition;
 
 // define your global instances of motors and other devices here
-
-
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -37,7 +36,7 @@ bool SP;
 bool EXIT;
 void pre_auton(void)
 {
-  Claw.set(true);
+  // Claw.set(true);
   EXIT = false;
   Tilt.set(true);
   Clamp.set(true);
@@ -277,65 +276,47 @@ void autonomous(void)
   // Insert autonomous user code here.
   // ..........................................................................
 
- 
-
   CStop();
 }
 int RV;
 int LV;
 
+// int IntakeTask(void)
+// {
+//   while (true)
+//   {
+//     AntiTipTask(10.0, 0.3, 9.0, 6.0);
+//   }
+//   return 0;
+// }
+
+double lastPitch = 0;
 bool tipActive = false;
-
-int AntiTipTask(void)
-{
-  const double kP = 5.0;
-  const double kD = 1.0;
-  const double triggerAngle = 9.0; // degrees — start correcting past this
-  const double releaseAngle = 6.0; // degrees — stop correcting once back under this
-
-  double lastPitch = 0;
-  Gyro.calibrate();
-
-  while (true)
-  {
-    double pitch = Gyro.pitch(rotationUnits::deg);
-    double pitchRate = (pitch - lastPitch) / 0.01;
-    lastPitch = pitch;
-
-    if (!tipActive && fabs(pitch) > triggerAngle)
-    {
-      tipActive = true;
-    }
-    else if (tipActive && fabs(pitch) < releaseAngle)
-    {
-      tipActive = false;
-    }
-
-    if (tipActive)
-    {
-      double correction = (pitch * kP) + (pitchRate * kD);
-      if (correction > 100)
-        correction = 100;
-      if (correction < -100)
-        correction = -100;
-      Move(correction, correction);
-
-    }
-
-    wait(10, msec);
-  }
-  return 0;
-}
 
 int DriveTask(void)
 {
+  const double triggerAngleA = 7.0;  // degrees — forward tip trigger
+  const double triggerAngleB = -7.0; // degrees — backward tip trigger
+  const double releaseAngleA = 3.0;  // degrees — recovers once back under this
+  const double releaseAngleB = 3.0;
+  const double kP = 5.0;
+  const double kD = 0.5;
+
   while (true)
   {
+    double pitch = Gyro.roll(rotationUnits::deg);
+    double pitchRate = (pitch - lastPitch) / 0.01;
+    lastPitch = pitch;
+
+    if (!tipActive && (pitch > triggerAngleA || pitch < triggerAngleB))
+      tipActive = true;
+    else if (tipActive && fabs(pitch) < releaseAngleA || fabs(pitch) > releaseAngleB)
+      tipActive = false;
+
     if (!tipActive)
     {
       RV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
       LV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
-
       if (RV > 100)
         RV = 100;
       if (RV < -100)
@@ -344,105 +325,159 @@ int DriveTask(void)
         LV = 100;
       if (LV < -100)
         LV = -100;
-
       Move(LV, RV);
     }
-    // while tipActive is true, DriveTask does nothing — AntiTipTask owns the motors
+    else
+    {
+      double correction = (pitch * kP) + (pitchRate * kD);
+      if (correction > 100)
+        correction = 100;
+      if (correction < -100)
+        correction = -100;
+      while (tipActive)
+      {
+        Move(correction, correction);
+      }
+    }
+
     wait(10, msec);
   }
   return 0;
 }
+
 int V;
-int ATask(void)
-{
-  double pow;
-  while (true)
-  {
-    pow = ((Controller1.ButtonR2.pressing() - Controller1.ButtonR1.pressing()) * 100); // Calculate intake power, if button pressed, button.pressing returns 1
-    RunRoller(-pow);
 
-    // RunPuncher((Controller1.ButtonB.pressing())*100);
-  }
+// int ATask(void)
+// {
+//   bool matchloadActive = false;
+//   double pow;
+//   double intakeDistance = 0;
+//   while (true)
+//   {
+//     if (Controller1.ButtonUp.pressing() && !matchloadActive)
+//     {
+//       matchloadActive = true;  // latch — only starts once per press
+//     }
 
-  return 0;
-}
+//     if (matchloadActive)
+//     {
+//       intakeDistance = intakeSensor.objectDistance(distanceUnits::in);
+//       Roller.spin(forward, 100, velocityUnits::pct);  // spin one direction until object is captured
+
+//       // if (intakeDistance <= 10.0)
+//       // {
+//       //   Roller.spin(forward, 0, velocityUnits::pct);  // stop the roller — object captured
+//       //   IntakeBar.set(true);
+//       //   wait(250, msec);
+//       //   chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct);
+//       //   wait(250, msec);
+//       //   Claw.set(true);
+//       //   wait(250, msec);
+//       //   chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct);
+
+//       //   matchloadActive = false;  // done — hand control back to the driver
+//       // }
+//     }
+//     else
+//     {
+//       pow = (Controller1.ButtonR2.pressing() - Controller1.ButtonR1.pressing()) * 100;
+//       Roller.spin(forward, -pow, velocityUnits::pct);
+//     }
+
+//     wait(20, msec);
+//   }
+//   return 0;
+// }
 
 int ButtonPressingX, XTaskActiv;
 int ButtonPressingY, YTaskActiv;
 
-int PTask(void)
-{
-  while (true)
-  {
-    // Toggles Tilt
-    if (XTaskActiv == 0 && Controller1.ButtonX.pressing() && ButtonPressingX == 0)
-    {
-      ButtonPressingX = 1;
-      XTaskActiv = 1;
-      Tilt.set(true);
-    }
+// int PTask(void)
+// {
+//   while (true)
+//   {
+//     // Toggles Tilt
+//     if (XTaskActiv == 0 && Controller1.ButtonX.pressing() && ButtonPressingX == 0)
+//     {
+//       ButtonPressingX = 1;
+//       XTaskActiv = 1;
+//       Tilt.set(true);
+//     }
 
-    else if (!Controller1.ButtonX.pressing())
-      ButtonPressingX = 0;
+//     else if (!Controller1.ButtonX.pressing())
+//       ButtonPressingX = 0;
 
-    else if (XTaskActiv == 1 && Controller1.ButtonX.pressing() && ButtonPressingX == 0)
-    {
-      ButtonPressingX = 1;
-      XTaskActiv = 0;
-      Tilt.set(false);
-    }
-    //----------------------
-    // Toggles Clamp
-    if (YTaskActiv == 0 && Controller1.ButtonY.pressing() && ButtonPressingY == 0)
-    {
-      ButtonPressingY = 1;
-      YTaskActiv = 1;
-      Clamp.set(true);
-    }
+//     else if (XTaskActiv == 1 && Controller1.ButtonX.pressing() && ButtonPressingX == 0)
+//     {
+//       ButtonPressingX = 1;
+//       XTaskActiv = 0;
+//       Tilt.set(false);
+//     }
+//     //----------------------
+//     // Toggles Clamp
+//     if (YTaskActiv == 0 && Controller1.ButtonY.pressing() && ButtonPressingY == 0)
+//     {
+//       ButtonPressingY = 1;
+//       YTaskActiv = 1;
+//       Clamp.set(true);
+//     }
 
-    else if (!Controller1.ButtonY.pressing())
-      ButtonPressingY = 0;
+//     else if (!Controller1.ButtonY.pressing())
+//       ButtonPressingY = 0;
 
-    else if (YTaskActiv == 1 && Controller1.ButtonY.pressing() && ButtonPressingY == 0)
-    {
-      ButtonPressingY = 1;
-      YTaskActiv = 0;
-      Clamp.set(false);
-    }
-  }
-  return 0;
-}
-// int IntakeTask(void) {
-//   while (true) {
-//     if (Controller1.ButtonR2.pressing()) {
-//       RunRoller(100);    // R2 held: spin forward
-//     } else if (Controller1.ButtonR1.pressing()) {
-//       RunRoller(-100);   // R1 held: spin backward
+//     else if (YTaskActiv == 1 && Controller1.ButtonY.pressing() && ButtonPressingY == 0)
+//     {
+//       ButtonPressingY = 1;
+//       YTaskActiv = 0;
+//       Clamp.set(false);
 //     }
 //   }
 //   return 0;
 // }
+int IntakeTask(void)
+{
+  while (true)
+  {
+    if (Controller1.ButtonR2.pressing())
+    {
+      RunRoller(100);
+    }
+    else if (Controller1.ButtonR1.pressing())
+    {
+      RunRoller(-100);
+    }
+    else
+    {
+      RunRoller(0); // neither held: stop
+    }
+    wait(20, msec);
+  }
+  return 0;
+}
 
 int LiftTask(void)
 {
   liftL.setMaxTorque(100, percentUnits::pct);
   liftR.setMaxTorque(100, percentUnits::pct);
+
   while (true)
   {
     if (Controller1.ButtonL2.pressing())
     {
-      liftL.spin(forward, 100, percentUnits::pct);
-      liftR.spin(reverse, 100, percentUnits::pct); // L2 held: spin forward
+      liftL.spin(reverse, -100, percentUnits::pct);
+      liftR.spin(forward, -100, percentUnits::pct); // L2 held: spin forward
     }
     else if (Controller1.ButtonL1.pressing())
     {
-      liftL.spin(reverse, 100, percentUnits::pct); // L1 held: spin backward
-      liftR.spin(forward, 100, percentUnits::pct); // L1 held: spin backward
+      liftL.spin(forward, -100, percentUnits::pct); // L1 held: spin backward
+      liftR.spin(reverse, -100, percentUnits::pct); // L1 held: spin backward
     }
     else
     {
-      liftL.stop(); // neither held: stop
-      liftR.stop(); // neither held: stop
+      liftL.setBrake(hold);
+      liftR.setBrake(hold);
+      liftL.stop();
+      liftR.stop();
     }
   }
   return 0;
@@ -456,8 +491,8 @@ int ClawTask(void)
     {
       Claw.set(true);
     }
-    else if (Controller1.ButtonUp.pressing())
-    { 
+    else
+    {
       Claw.set(false);
     }
   }
@@ -469,11 +504,13 @@ int IntakeBarTask(void)
   {
     if (Controller1.ButtonRight.pressing())
     {
-      Claw.set(true);
+      IntakeBar.set(true);
     }
-    else if (Controller1.ButtonLeft.pressing())
-    { 
-      Claw.set(false);
+    else
+    {
+      {
+        IntakeBar.set(false);
+      }
     }
   }
 }
@@ -482,16 +519,17 @@ int ChainbarTask(void)
 {
   while (true)
   {
-    if (Controller1.ButtonB.pressing()) 
+    if (Controller1.ButtonB.pressing())
     {
-      chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct); //zero position
+      chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct); // zero position
     }
     else if (Controller1.ButtonX.pressing())
     {
-      chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct); //back position
+      chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct); // back position
     }
-    else if (Controller1.ButtonA.pressing()){
-      chainbar.spinToPosition(423, rotationUnits::deg, 100, velocityUnits::pct); //high position 
+    else if (Controller1.ButtonA.pressing())
+    {
+      chainbar.spinToPosition(423, rotationUnits::deg, 100, velocityUnits::pct); // high position
     }
     else
     {
@@ -500,8 +538,22 @@ int ChainbarTask(void)
   }
 }
 
+//   if (vexDistanceDistanceGet(intakeSensor) < 3.0) {
+//     isLoaded = true;
+//     RunRoller(50);
+//     wait 500, msec;
+//     IntakeBar.set(true);
+//     wait 500, msec;
+//     chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct);
+//     wait 500, msec;
+//     Claw.set(true);
+//     wait 500, msec;
+//     chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct);
+//   }
+//   else {
+//     RunRoller(0);
 
-
+// }
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -516,28 +568,26 @@ int ChainbarTask(void)
 void usercontrol(void)
 {
   EXIT = true; // Force Exit Autosel once drivercontrol began.
-  // User control code here, inside the loop
+               // User control code here, inside the loop
 
+  // This is the main execution loop for the user control program.
+  // Each time through the loop your program should update motor + servo
+  // values based on feedback from the joysticks.
+
+  task Dtask = task(DriveTask);
+  // task Atask = task(ATask);
+  // task Ptask = task(PTask);
+  task Ltask = task(LiftTask);
+  task Itask = task(IntakeBarTask);
+  task Ctask = task(ClawTask);
+  task IItask = task(IntakeTask);
+
+  // ........................................................................
+  // Insert user code here. This is where you use the joystick values to
+  // update your motors, etc.
+  // ........................................................................
   while (1)
   {
-    // This is the main execution loop for the user control program.
-    // Each time through the loop your program should update motor + servo
-    // values based on feedback from the joysticks.
-    
-    task Tiptask = task(AntiTipTask);
-    task Dtask = task(DriveTask);
-    task Atask = task(ATask);
-    task Ptask = task(PTask);
-    task Ltask = task(LiftTask);
-    task Itask = task(IntakeBarTask);
-    // task Ctask=task(ClawTask);
-    // task Itask=task(IntakeTask);
-
-    // ........................................................................
-    // Insert user code here. This is where you use the joystick values to
-    // update your motors, etc.
-    // ........................................................................
-
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }

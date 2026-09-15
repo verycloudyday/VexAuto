@@ -33,6 +33,7 @@ extern void MovePID(PIDDataSet KVals, PIDDataSet Dvals,  int Speed, double dist,
 extern void TurnMaxTimePID(PIDDataSet KVals,double DeltaAngle,double TE, bool brake);
 extern void MoveTimePID(PIDDataSet KVals, int Speed, double TE,double AccT,double ABSHDG, bool brake);
 extern void MoveTime(int Speed, double TE,double AccT, bool brake);
+extern void counterPID (PIDDataSet KVals, int Speed, double ABSHDG, bool brake);
 
 
 #endif

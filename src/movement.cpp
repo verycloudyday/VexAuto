@@ -163,6 +163,9 @@ if(fabs(CSpeed)<fabs((double)Speed))
   }
   else CStop();
 }
+
+
+
 /** Moves the robot forward or backward
  * @param KVals the PID constants for heading correctoin
  * @param DVals the PID constants for forward and back movement(deceleration)
@@ -378,4 +381,33 @@ void MoveTime(int Speed, double TE,double AccT, bool brake){
   if(brake){BStop();
   wait(200,msec);}
   else CStop();
+}
+
+void counterPID (PIDDataSet KVals, int Speed, double ABSHDG, bool brake){
+  double CSpeed=0;
+  Zeroing(true,false);
+  ChassisDataSet SensorVals;
+  SensorVals=ChassisUpdate();
+  double PVal=0;
+  double IVal=0;
+  double DVal=0;
+  double LGV=0;
+  PrevE=0;
+  double Correction=0;
+
+  while(1)
+  {
+    SensorVals=ChassisUpdate();
+    LGV=SensorVals.HDG-ABSHDG;
+    if(LGV>180) LGV=LGV-360;
+    PVal=KVals.kp*LGV;
+    IVal=IVal+KVals.ki*LGV*0.02;
+    DVal=KVals.kd*(LGV-PrevE);
+
+    Correction=PVal+IVal+DVal/0.02;
+
+    Move(-Speed-Correction,-Speed+Correction);
+    PrevE=LGV;
+    wait(20, msec);
+  }
 }

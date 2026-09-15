@@ -5,13 +5,23 @@
 // MoveEncoderPID(TestPara, motor speed, encoder travel distance (inches), time to full speed(sec), relative heading(to starting position), braking?)
 // TurnMaxTimePID(TestPara, Desired Heading -180 to 180, time out to calculate turn, Braking?)
 // MoveTimePID(TestPara, motor speed, time traveled (sec), time to full speed, heading, false);
+//liftAuto (int deg, int speed, bool brake);
+//chainbarAuto (int deg, int speed, bool brake);
+//clawAuto (bool state);
 
 void test() {
     // declare initial conditions
-    PIDDataSet TestPara={4,0.1,0.2};
-    PIDDataSet TestPara={1.5,0.1,0.15};
-    // MoveEncoderPID(TestPara, 100, 36 , 0.4,0,true);
+    // liftL.resetPosition();
+    // liftR.resetPosition();
+    // chainbar.resetPosition();
+    // PIDDataSet TestPara={1.0,1.0,1.0};
+    // MoveEncoderPID(TestPara, 100, 24 , 0.4,0,true);
+    // wait (250, msec);
+    // TurnMaxTimePID(TestPara, -45, 0.5, true);
+    // lift (100, 100, true);
     
+
+
     /*MoveEncoderPID(TestPara, 100 , 65 ,0.4,0,true);
     TurnMaxTimePID(TestPara, 90, 0.4, true);
     MoveEncoderPID(TestPara, 100 , 50 ,0.4,90,true);
