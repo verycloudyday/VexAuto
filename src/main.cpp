@@ -103,6 +103,7 @@ void pre_auton(void)
       UpdateDynamic();
 
     SP = Brain.Screen.pressing();
+    wait(20, msec);
   }
 
   Brain.Screen.clearScreen();
@@ -234,13 +235,19 @@ void autonomous(void)
   //  MoveTimePID(TestPara, motor speed, time traveled (sec), time to full speed, heading, false);
 
   // Do not change the below
-  PIDDataSet TestPara = {4, 0.1, 0.2};
+  if (!EXIT)
+  {
+    EXIT = true;
+    AutoSelectorVal = 1;
+  }
+
   Zeroing(true, true);
 
   // can start editing if nessary
   // Put Auto route function into if statements to use autoselector
-  if (AutoSelectorVal == 1) // Quali close 6 triball auto
+  if (AutoSelectorVal == 1) // double toggle
   {
+
     test();
   }
 
@@ -295,11 +302,10 @@ bool tipActive = false;
 
 int DriveTask(void)
 {
-  const double triggerAngleA = 7.0;  // degrees — forward tip trigger
-  const double triggerAngleB = -7.0; // degrees — backward tip trigger
-  const double releaseAngleA = 3.0;  // degrees — recovers once back under this
-  const double releaseAngleB = 3.0;
-  const double kP = 5.0;
+  const double triggerAngleA = 15.0;
+  const double triggerAngleB = -10.0;
+  const double releaseAngle = 5.0;
+  const double kP = 3.5;
   const double kD = 0.5;
 
   while (true)
@@ -310,13 +316,13 @@ int DriveTask(void)
 
     if (!tipActive && (pitch > triggerAngleA || pitch < triggerAngleB))
       tipActive = true;
-    else if (tipActive && fabs(pitch) < releaseAngleA || fabs(pitch) > releaseAngleB)
+    else if (tipActive && fabs(pitch) < releaseAngle)
       tipActive = false;
 
     if (!tipActive)
     {
-      RV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
-      LV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
+      RV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
+      LV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
       if (RV > 100)
         RV = 100;
       if (RV < -100)
@@ -334,10 +340,7 @@ int DriveTask(void)
         correction = 100;
       if (correction < -100)
         correction = -100;
-      while (tipActive)
-      {
-        Move(correction, correction);
-      }
+      Move(correction, correction); // no inner loop — outer 10ms cycle handles repetition
     }
 
     wait(10, msec);

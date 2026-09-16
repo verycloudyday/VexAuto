@@ -411,3 +411,29 @@ void counterPID (PIDDataSet KVals, int Speed, double ABSHDG, bool brake){
     wait(20, msec);
   }
 }
+
+
+
+
+void clawAuto (bool state){
+  if(state){
+    Claw.set(true);
+  }
+  else{
+    Claw.set(false);
+  }
+}
+
+void chainbarAuto (int deg, bool brake){
+  if(brake){
+    chainbar.setStopping(hold);
+  }
+  else{
+    chainbar.setStopping(coast);
+  }
+  chainbar.spinToPosition(deg, rotationUnits::deg, 100, velocityUnits::pct);
+}
+
+
+
+

@@ -11,13 +11,48 @@
 
 void test() {
     // declare initial conditions
-    // liftL.resetPosition();
-    // liftR.resetPosition();
-    // chainbar.resetPosition();
-    // PIDDataSet TestPara={1.0,1.0,1.0};
-    // MoveEncoderPID(TestPara, 100, 24 , 0.4,0,true);
-    // wait (250, msec);
-    // TurnMaxTimePID(TestPara, -45, 0.5, true);
+    liftL.resetPosition();
+    liftR.resetPosition();
+    chainbar.resetPosition();
+    IntakeBar.set(false);
+    liftL.setStopping(hold);
+    liftR.setStopping(hold);
+    chainbar.setStopping(hold);
+    chainbar.setMaxTorque(100,percent);
+    Claw.set(false);
+    Gyro.calibrate();
+
+    PIDDataSet DrivePara={0.3,0.05,0.1};
+    PIDDataSet TurnPara={0.5,0.3,0.10};
+
+    //chainbar.spinToPosition(823, rotationUnits::deg, 100, velocityUnits::pct); // zero position
+
+
+    MoveTimePID(DrivePara, 100, 0.2, 0.1, 0, false); //toggle 1
+    MoveTimePID(DrivePara, -100, 0.2, 0.2, 0, false); //back out
+    MoveTimePID(DrivePara, 100, 0.3, 0.1, 0, false); //toggle 2
+    
+   
+    MoveEncoderPID(DrivePara, 100 , 20.0 ,1,310,true); //back out 
+    //TurnMaxTimePID(TurnPara, 110, 0.3, true); //turn face goal
+    //MoveTimePID(DrivePara, -100, 1.0, 0.8, 90.0, false); //move to goal
+    
+    // wait (50, msec);
+    // clawAuto(true); //drop pin
+    // wait (50, msec);
+
+    //MoveEncoderPID(DrivePara, 100 , 8.0 ,1,113,true); //back out
+    //TurnMaxTimePID(TurnPara, 113, 0.3, true); 
+    
+    
+    
+   
+    
+        
+    }
+        
+   
+    
     // lift (100, 100, true);
     
 
@@ -43,7 +78,7 @@ void test() {
     // MovePID(TestPara, 100, 5, 0.5, 0, true, 2); // Move forward 24 inches
     // wait(500, sec);
     // MovePID(TestPara, -100, 5, 0.5, 0, true, 2); // Move backward 24 inches
-}
+
 void test2(){  
     
      PIDDataSet TestPara={1.5,0.1,0.15};

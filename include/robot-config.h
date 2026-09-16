@@ -25,6 +25,7 @@ extern inertial Gyro;
 extern digital_out LeftBackWing;
 extern distance intakeSensor;
 extern digital_out IntakeBar;
+extern distance backSensor;
 
 extern const double wheelDiam;
 extern const double wheelToMotorRatio;

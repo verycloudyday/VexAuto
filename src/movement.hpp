@@ -34,6 +34,8 @@ extern void TurnMaxTimePID(PIDDataSet KVals,double DeltaAngle,double TE, bool br
 extern void MoveTimePID(PIDDataSet KVals, int Speed, double TE,double AccT,double ABSHDG, bool brake);
 extern void MoveTime(int Speed, double TE,double AccT, bool brake);
 extern void counterPID (PIDDataSet KVals, int Speed, double ABSHDG, bool brake);
+extern void clawAuto (bool state);
+extern void chainbarAuto (int deg, bool brake);
 
 
 #endif
