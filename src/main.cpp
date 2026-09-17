@@ -211,6 +211,9 @@ void pre_auton(void)
   Brain.Screen.setPenColor("#39FF14");
   Brain.Screen.setCursor(5, 10);
   Brain.Screen.print("AUTO CONFIRMED");
+  Brain.Screen.setPenColor("#ff0000");
+  Brain.Screen.setCursor(10, 10);
+  Brain.Screen.print("CODE IS STRAIGHT ASS, DELETE IMMEDIATELY");
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
@@ -299,12 +302,16 @@ int LV;
 
 double lastPitch = 0;
 bool tipActive = false;
+bool antiTipEnabled = false;
+bool wasLeftPressed = false;
+int tipDirection = 0;   // +1 = tipped forward, -1 = tipped backward, 0 = not tipping
 
 int DriveTask(void)
 {
-  const double triggerAngleA = 15.0;
-  const double triggerAngleB = -10.0;
-  const double releaseAngle = 5.0;
+  const double triggerAngleA = 10.0;   // forward trigger
+  const double triggerAngleB = -10.0;  // backward trigger
+  const double releaseAngleA = 7.0;    // recovers once pitch drops below this (forward tip)
+  const double releaseAngleB = -7.0;   // recovers once pitch rises above this (backward tip) — change later
   const double kP = 3.5;
   const double kD = 0.5;
 
@@ -314,33 +321,63 @@ int DriveTask(void)
     double pitchRate = (pitch - lastPitch) / 0.01;
     lastPitch = pitch;
 
-    if (!tipActive && (pitch > triggerAngleA || pitch < triggerAngleB))
-      tipActive = true;
-    else if (tipActive && fabs(pitch) < releaseAngle)
+    bool isLeftPressed = Controller1.ButtonLeft.pressing();
+    if (isLeftPressed && !wasLeftPressed)
+    {
+      antiTipEnabled = !antiTipEnabled;
       tipActive = false;
+      tipDirection = 0;
+      Controller1.rumble(".");
+    }
+    wasLeftPressed = isLeftPressed;
+
+    if (!tipActive && antiTipEnabled)
+    {
+      if (pitch > triggerAngleA)
+      {
+        tipActive = true;
+        tipDirection = 1;
+        Controller1.rumble(".");
+      }
+      else if (pitch < triggerAngleB)
+      {
+        tipActive = true;
+        tipDirection = -1;
+        Controller1.rumble("-");
+      }
+    }
+    else if (tipActive)
+    {
+      if (tipDirection == 1 && pitch < releaseAngleA)
+      {
+        tipActive = false;
+        tipDirection = 0;
+        Controller1.rumble("..");
+      }
+      else if (tipDirection == -1 && pitch > releaseAngleB)
+      {
+        tipActive = false;
+        tipDirection = 0;
+        Controller1.rumble("..");
+      }
+    }
 
     if (!tipActive)
     {
       RV = -Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent);
       LV = -Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent);
-      if (RV > 100)
-        RV = 100;
-      if (RV < -100)
-        RV = -100;
-      if (LV > 100)
-        LV = 100;
-      if (LV < -100)
-        LV = -100;
+      if (RV > 100) RV = 100;
+      if (RV < -100) RV = -100;
+      if (LV > 100) LV = 100;
+      if (LV < -100) LV = -100;
       Move(LV, RV);
     }
     else
     {
       double correction = (pitch * kP) + (pitchRate * kD);
-      if (correction > 100)
-        correction = 100;
-      if (correction < -100)
-        correction = -100;
-      Move(correction, correction); // no inner loop — outer 10ms cycle handles repetition
+      if (correction > 100) correction = 100;
+      if (correction < -100) correction = -100;
+      Move(correction, correction);
     }
 
     wait(10, msec);
@@ -437,17 +474,34 @@ int ButtonPressingY, YTaskActiv;
 //   }
 //   return 0;
 // }
+
+bool barUp = false;
 int IntakeTask(void)
 {
   while (true)
   {
     if (Controller1.ButtonR2.pressing())
     {
-      RunRoller(100);
+      RunRoller(-100);
+      if (barUp){
+        if (intakeSensor.objectDistance(distanceUnits::mm) < 100.0) {
+          RunRoller(100);
+          wait(100, msec);
+          IntakeBar.set(false);
+          wait(100, msec);
+          chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct);
+          wait(100, msec);
+          duoLift(-100, true);
+          wait(100, msec);
+          Claw.set(true);
+          wait(100, msec);
+          chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct);
+        }
+      }
     }
     else if (Controller1.ButtonR1.pressing())
     {
-      RunRoller(-100);
+      RunRoller(100);
     }
     else
     {
@@ -494,12 +548,14 @@ int ClawTask(void)
     {
       Claw.set(true);
     }
-    else
+    else 
     {
       Claw.set(false);
     }
   }
 }
+
+
 
 int IntakeBarTask(void)
 {
@@ -508,11 +564,13 @@ int IntakeBarTask(void)
     if (Controller1.ButtonRight.pressing())
     {
       IntakeBar.set(true);
+      barUp = true;
     }
     else
     {
       {
         IntakeBar.set(false);
+        barUp = false;
       }
     }
   }
@@ -520,25 +578,31 @@ int IntakeBarTask(void)
 
 int ChainbarTask(void)
 {
+  chainbar.setBrake(hold);  
+
   while (true)
   {
-    if (Controller1.ButtonB.pressing())
+    if (Controller1.ButtonB.pressed())
     {
-      chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct); // zero position
+      chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct, false); // zero position, non-blocking
     }
-    else if (Controller1.ButtonX.pressing())
+    else if (Controller1.ButtonA.pressed())
     {
-      chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct); // back position
+      chainbar.spinToPosition(423, rotationUnits::deg, 100, velocityUnits::pct, false); // high position, non-blocking
     }
-    else if (Controller1.ButtonA.pressing())
+    else if (Controller1.ButtonX.pressed())
     {
-      chainbar.spinToPosition(423, rotationUnits::deg, 100, velocityUnits::pct); // high position
+      chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct, false); // back position, non-blocking
     }
     else
     {
       chainbar.stop();
+      RunRoller(0);
     }
+
+    wait(20, msec);
   }
+  return 0;
 }
 
 //   if (vexDistanceDistanceGet(intakeSensor) < 3.0) {
@@ -583,6 +647,7 @@ void usercontrol(void)
   task Ltask = task(LiftTask);
   task Itask = task(IntakeBarTask);
   task Ctask = task(ClawTask);
+  task CBtask = task(ChainbarTask);
   task IItask = task(IntakeTask);
 
   // ........................................................................

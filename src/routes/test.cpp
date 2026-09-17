@@ -14,35 +14,65 @@ void test() {
     liftL.resetPosition();
     liftR.resetPosition();
     chainbar.resetPosition();
-    IntakeBar.set(false);
+    wait(1000, msec);
+    
     liftL.setStopping(hold);
     liftR.setStopping(hold);
     chainbar.setStopping(hold);
     chainbar.setMaxTorque(100,percent);
+    double backDistance = 0;
     Claw.set(false);
+
+
     Gyro.calibrate();
+    wait(500, msec);
+
+    
 
     PIDDataSet DrivePara={0.3,0.05,0.1};
-    PIDDataSet TurnPara={0.5,0.3,0.10};
+    PIDDataSet TurnPara={0.15,0.70,0.15};
+    PIDDataSet testPara = {1.0,0.1,0.15};
 
-    //chainbar.spinToPosition(823, rotationUnits::deg, 100, velocityUnits::pct); // zero position
+    // //chainbar.spinToPosition(823, rotationUnits::deg, 100, velocityUnits::pct); // zero position
+    // // while (true){
+    // //     backDistance = backSensor.objectDistance(distanceUnits::mm);
+    // // }
 
 
-    MoveTimePID(DrivePara, 100, 0.2, 0.1, 0, false); //toggle 1
-    MoveTimePID(DrivePara, -100, 0.2, 0.2, 0, false); //back out
-    MoveTimePID(DrivePara, 100, 0.3, 0.1, 0, false); //toggle 2
     
+
+    MoveTimePID(DrivePara, 100, 0.2, 0.2, 0, false); //toggle 1
+    MoveTimePID(DrivePara, -50, 0.3, 0.2, 0, false); //back out
+    MoveTimePID(DrivePara, 100, 0.3, 0.1, 0, false); //toggle 2
+    IntakeBar.set(false);
    
-    MoveEncoderPID(DrivePara, 100 , 20.0 ,1,310,true); //back out 
-    //TurnMaxTimePID(TurnPara, 110, 0.3, true); //turn face goal
-    //MoveTimePID(DrivePara, -100, 1.0, 0.8, 90.0, false); //move to goal
+    MoveEncoderPID(DrivePara, 100 , 9.0 ,0.2,0,true); //back out 
+    TurnMaxTimePID(TurnPara, 90, 0.5, true); //turn face goal
+    MoveEncoderPID(DrivePara, 100 , 10.0 ,0.2,90,true); //move to goal
+    Move(50,50);
+    wait (250, msec);
+    Move(25, 25);
+    Claw.set(true);
+    wait (250, msec);
+    
+    // MoveEncoderPID(DrivePara, -100 , 12.0 ,0.2,90,true); //back out
+    // // liftAuto(100, 100, 500, true); //lift up
+
+    // // MoveTimePID(DrivePara, 100, 0.1, 0.1, -90, false); //align
+
+    // wait (1000, msec);
+
+    // MoveEncoderPID(DrivePara, 100 , 3.0 ,0.2,-90,true); //back out
+
+
+    // MoveTimePID(DrivePara, -100, 1.0, 0.8, 90.0, false); //move to goal
     
     // wait (50, msec);
     // clawAuto(true); //drop pin
     // wait (50, msec);
 
-    //MoveEncoderPID(DrivePara, 100 , 8.0 ,1,113,true); //back out
-    //TurnMaxTimePID(TurnPara, 113, 0.3, true); 
+    // MoveEncoderPID(DrivePara, 100 , 8.0 ,1,113,true); //back out
+    // TurnMaxTimePID(TurnPara, 113, 0.3, true); 
     
     
     

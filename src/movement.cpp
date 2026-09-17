@@ -434,6 +434,32 @@ void chainbarAuto (int deg, bool brake){
   chainbar.spinToPosition(deg, rotationUnits::deg, 100, velocityUnits::pct);
 }
 
+void duoLift(int speed, bool brake){
+  if(brake){
+    liftL.setStopping(hold);
+    liftR.setStopping(hold);
+  }
+  else{
+    liftL.setStopping(coast);
+    liftR.setStopping(coast);
+  }
+  liftL.spin(forward, -speed, percentUnits::pct);
+  liftR.spin(forward, speed, percentUnits::pct);
+}
+
+void liftAuto(int speed, int deg, int time, bool brake){
+  if(brake){
+    liftL.setStopping(hold);
+    liftR.setStopping(hold);
+  }
+  else{
+    liftL.setStopping(coast);
+    liftR.setStopping(coast);
+  }
+  liftL.spinToPosition(deg, rotationUnits::deg, speed, velocityUnits::pct);
+  liftR.spinToPosition(-deg, rotationUnits::deg, speed, velocityUnits::pct);
+  wait(time, sec);
+}
 
 
 
