@@ -18,6 +18,8 @@ void test() {
     
     liftL.setStopping(hold);
     liftR.setStopping(hold);
+    liftL.setMaxTorque(100, percentUnits::pct);
+    liftR.setMaxTorque(100, percentUnits::pct);
     chainbar.setStopping(hold);
     chainbar.setMaxTorque(100,percent);
     double backDistance = 0;
@@ -52,8 +54,20 @@ void test() {
     Move(50,50);
     wait (250, msec);
     Move(25, 25);
+    wait (300, msec);
     Claw.set(true);
-    wait (250, msec);
+    wait (300, msec);
+    liftAuto(100, 1, true);
+
+    MoveEncoderPID(DrivePara, -100, 7.6, 0.1, 90, true);
+
+    TurnMaxTimePID(TurnPara, 140, 0.8, true);
+
+    MoveEncoderPID(DrivePara, 100, 15, 0.1, 143, true);
+
+    liftAuto(-100,1, true);
+
+    
     
     // MoveEncoderPID(DrivePara, -100 , 12.0 ,0.2,90,true); //back out
     // // liftAuto(100, 100, 500, true); //lift up

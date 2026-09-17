@@ -485,17 +485,17 @@ int IntakeTask(void)
       RunRoller(-100);
       if (barUp){
         if (intakeSensor.objectDistance(distanceUnits::mm) < 100.0) {
-          RunRoller(100);
-          wait(100, msec);
-          IntakeBar.set(false);
-          wait(100, msec);
-          chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct);
-          wait(100, msec);
-          duoLift(-100, true);
-          wait(100, msec);
-          Claw.set(true);
-          wait(100, msec);
-          chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct);
+          // RunRoller(100);
+          // wait(100, msec);
+          // IntakeBar.set(false);
+          // wait(100, msec);
+          // chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct);
+          // wait(100, msec);
+          // duoLift(-100, true);
+          // wait(100, msec);
+          // Claw.set(true);
+          // wait(100, msec);
+          // chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct);
         }
       }
     }
@@ -540,20 +540,20 @@ int LiftTask(void)
   return 0;
 }
 
+bool clawState = false;
+
+void exeClaw(void)
+{
+  clawState = !clawState;
+  Claw.set(clawState);
+}
+
 int ClawTask(void)
 {
-  while (true)
-  {
-    if (Controller1.ButtonDown.pressing())
-    {
-      Claw.set(true);
-    }
-    else 
-    {
-      Claw.set(false);
-    }
-  }
+  Controller1.ButtonDown.pressed(exeClaw);  // register once — VEX calls exeClaw for you on each press
+  return 0;
 }
+
 
 
 
@@ -576,30 +576,32 @@ int IntakeBarTask(void)
   }
 }
 
+void moveChainbarToLow(){
+  chainbar.spinToPosition(100, rotationUnits::deg, 850, velocityUnits::pct, true);{
+  }
+}
+
+void moveChainbarToHigh(){
+  chainbar.spinToPosition(100, rotationUnits::deg, 450, velocityUnits::pct, true);{
+  }
+}
+
+void moveChainbarToZero(){
+  chainbar.spinToPosition(100, rotationUnits::deg, 0, velocityUnits::pct, true);{
+  }
+}
+
 int ChainbarTask(void)
 {
   chainbar.setBrake(hold);  
 
+
   while (true)
   {
-    if (Controller1.ButtonB.pressed())
-    {
-      chainbar.spinToPosition(0, rotationUnits::deg, 100, velocityUnits::pct, false); // zero position, non-blocking
-    }
-    else if (Controller1.ButtonA.pressed())
-    {
-      chainbar.spinToPosition(423, rotationUnits::deg, 100, velocityUnits::pct, false); // high position, non-blocking
-    }
-    else if (Controller1.ButtonX.pressed())
-    {
-      chainbar.spinToPosition(812, rotationUnits::deg, 100, velocityUnits::pct, false); // back position, non-blocking
-    }
-    else
-    {
-      chainbar.stop();
-      RunRoller(0);
-    }
-
+  Controller1.ButtonB.pressed(moveChainbarToLow);
+  Controller1.ButtonA.pressed(moveChainbarToHigh);
+  Controller1.ButtonX.pressed(moveChainbarToZero);
+   
     wait(20, msec);
   }
   return 0;

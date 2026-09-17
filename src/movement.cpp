@@ -447,7 +447,7 @@ void duoLift(int speed, bool brake){
   liftR.spin(forward, speed, percentUnits::pct);
 }
 
-void liftAuto(int speed, int deg, int time, bool brake){
+void liftAuto(int speed, int time, bool brake){
   if(brake){
     liftL.setStopping(hold);
     liftR.setStopping(hold);
@@ -456,9 +456,11 @@ void liftAuto(int speed, int deg, int time, bool brake){
     liftL.setStopping(coast);
     liftR.setStopping(coast);
   }
-  liftL.spinToPosition(deg, rotationUnits::deg, speed, velocityUnits::pct);
-  liftR.spinToPosition(-deg, rotationUnits::deg, speed, velocityUnits::pct);
+  liftL.spin(reverse, -speed, percentUnits::pct);
+  liftR.spin(forward, -speed, percentUnits::pct);
   wait(time, sec);
+  liftL.stop();
+  liftR.stop();
 }
 
 

@@ -37,7 +37,7 @@ extern void counterPID (PIDDataSet KVals, int Speed, double ABSHDG, bool brake);
 extern void clawAuto (bool state);
 extern void chainbarAuto (int deg, bool brake);
 extern void duoLift (int speed, bool brake);
-extern void liftAuto (int deg, int speed, int time, bool brake);
+extern void liftAuto (int speed, int time, bool brake);
 
 
 #endif
